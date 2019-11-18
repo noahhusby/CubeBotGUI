@@ -1,7 +1,6 @@
 C:\Users\yello\source\repos\CubeBotGUI\CubeBotGUI\bin\Debug\CubeBotGUI.exe.config
 C:\Users\yello\source\repos\CubeBotGUI\CubeBotGUI\bin\Debug\CubeBotGUI.exe
 C:\Users\yello\source\repos\CubeBotGUI\CubeBotGUI\bin\Debug\CubeBotGUI.pdb
-C:\Users\yello\source\repos\CubeBotGUI\CubeBotGUI\obj\Debug\CubeBotGUI.csprojAssemblyReference.cache
 C:\Users\yello\source\repos\CubeBotGUI\CubeBotGUI\obj\Debug\CubeBotGUI.Form1.resources
 C:\Users\yello\source\repos\CubeBotGUI\CubeBotGUI\obj\Debug\CubeBotGUI.Properties.Resources.resources
 C:\Users\yello\source\repos\CubeBotGUI\CubeBotGUI\obj\Debug\CubeBotGUI.csproj.GenerateResource.cache
@@ -48,3 +47,33 @@ C:\Users\Tom O'Donnell\source\repos\CubeBotGUI\CubeBotGUI\bin\Debug\zh-cn\ZedGra
 C:\Users\Tom O'Donnell\source\repos\CubeBotGUI\CubeBotGUI\bin\Debug\zh-tw\ZedGraph.resources.dll
 C:\Users\Tom O'Donnell\source\repos\CubeBotGUI\CubeBotGUI\obj\Debug\CubeBotGUI.csproj.CopyComplete
 C:\Users\Tom O'Donnell\source\repos\CubeBotGUI\CubeBotGUI\obj\Debug\CubeBotGUI.csprojAssemblyReference.cache
+C:\Users\yello\source\repos\CubeBotGUI\CubeBotGUI\bin\Debug\x64\concrt140.dll
+C:\Users\yello\source\repos\CubeBotGUI\CubeBotGUI\bin\Debug\x64\cvextern.dll
+C:\Users\yello\source\repos\CubeBotGUI\CubeBotGUI\bin\Debug\x64\msvcp140.dll
+C:\Users\yello\source\repos\CubeBotGUI\CubeBotGUI\bin\Debug\x64\opencv_videoio_ffmpeg411_64.dll
+C:\Users\yello\source\repos\CubeBotGUI\CubeBotGUI\bin\Debug\x64\vcruntime140.dll
+C:\Users\yello\source\repos\CubeBotGUI\CubeBotGUI\bin\Debug\x86\concrt140.dll
+C:\Users\yello\source\repos\CubeBotGUI\CubeBotGUI\bin\Debug\x86\cvextern.dll
+C:\Users\yello\source\repos\CubeBotGUI\CubeBotGUI\bin\Debug\x86\msvcp140.dll
+C:\Users\yello\source\repos\CubeBotGUI\CubeBotGUI\bin\Debug\x86\opencv_videoio_ffmpeg411.dll
+C:\Users\yello\source\repos\CubeBotGUI\CubeBotGUI\bin\Debug\x86\vcruntime140.dll
+C:\Users\yello\source\repos\CubeBotGUI\CubeBotGUI\bin\Debug\Emgu.CV.UI.dll
+C:\Users\yello\source\repos\CubeBotGUI\CubeBotGUI\bin\Debug\Emgu.CV.World.dll
+C:\Users\yello\source\repos\CubeBotGUI\CubeBotGUI\bin\Debug\ZedGraph.dll
+C:\Users\yello\source\repos\CubeBotGUI\CubeBotGUI\bin\Debug\Emgu.CV.UI.xml
+C:\Users\yello\source\repos\CubeBotGUI\CubeBotGUI\bin\Debug\Emgu.CV.World.xml
+C:\Users\yello\source\repos\CubeBotGUI\CubeBotGUI\bin\Debug\ZedGraph.xml
+C:\Users\yello\source\repos\CubeBotGUI\CubeBotGUI\bin\Debug\de\ZedGraph.resources.dll
+C:\Users\yello\source\repos\CubeBotGUI\CubeBotGUI\bin\Debug\es\ZedGraph.resources.dll
+C:\Users\yello\source\repos\CubeBotGUI\CubeBotGUI\bin\Debug\fr\ZedGraph.resources.dll
+C:\Users\yello\source\repos\CubeBotGUI\CubeBotGUI\bin\Debug\hu\ZedGraph.resources.dll
+C:\Users\yello\source\repos\CubeBotGUI\CubeBotGUI\bin\Debug\it\ZedGraph.resources.dll
+C:\Users\yello\source\repos\CubeBotGUI\CubeBotGUI\bin\Debug\ja\ZedGraph.resources.dll
+C:\Users\yello\source\repos\CubeBotGUI\CubeBotGUI\bin\Debug\pt\ZedGraph.resources.dll
+C:\Users\yello\source\repos\CubeBotGUI\CubeBotGUI\bin\Debug\ru\ZedGraph.resources.dll
+C:\Users\yello\source\repos\CubeBotGUI\CubeBotGUI\bin\Debug\sk\ZedGraph.resources.dll
+C:\Users\yello\source\repos\CubeBotGUI\CubeBotGUI\bin\Debug\sv\ZedGraph.resources.dll
+C:\Users\yello\source\repos\CubeBotGUI\CubeBotGUI\bin\Debug\tr\ZedGraph.resources.dll
+C:\Users\yello\source\repos\CubeBotGUI\CubeBotGUI\bin\Debug\zh-cn\ZedGraph.resources.dll
+C:\Users\yello\source\repos\CubeBotGUI\CubeBotGUI\bin\Debug\zh-tw\ZedGraph.resources.dll
+C:\Users\yello\source\repos\CubeBotGUI\CubeBotGUI\obj\Debug\CubeBotGUI.csproj.CopyComplete
