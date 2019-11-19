@@ -21,17 +21,14 @@ namespace CubeBotGUI
     {
         public Form1()
         {
-            if (File.Exists("bmp"))
-            {
-                File.Delete("bmp");
-            }
-            Control.CheckForIllegalCrossThreadCalls = false; //100% need this
+            if (File.Exists("bmp")) File.Delete("bmp");
+            CheckForIllegalCrossThreadCalls = false; //100% need this
             InitializeComponent();
         }
 
-        VideoCapture capture = new VideoCapture(); //create a camera capture
-        VideoCapture cap = new VideoCapture(); //create a camera capture
-        Bitmap image;
+        private readonly VideoCapture capture = new VideoCapture(); //create a camera capture
+        private readonly VideoCapture cap = new VideoCapture(); //create a camera capture
+        private Bitmap image;
         public Bitmap img;
 
 
@@ -50,7 +47,7 @@ namespace CubeBotGUI
         public static int green_confidence;
         public static int blue_confidence;
         public static int overall_confidence;
-        public bool solvemycubepressed = false;
+        public bool solvemycubepressed;
         public string newtext;
 
         public Color paint;
@@ -65,7 +62,7 @@ namespace CubeBotGUI
         //
 
         //   create array for holding the colors of each corner, plus one extra for storing the next target. [0] is the top-back-right piece. 
-        Stopwatch stopwatch1 = new Stopwatch();
+        private readonly Stopwatch stopwatch1 = new Stopwatch();
         public static string[] CornerColor = new string[10];
         public static string[] current = new string[10];
         public static int PossibleNumberOfPiecesToSolve = 7;
@@ -131,22 +128,21 @@ namespace CubeBotGUI
         public static bool firsttime = true;
 
 
-
-
-        public static int px = 0;
+        public static int px;
 
 
         //define location of corners in terms of pixels
-        public static int[,] pixel = new int[4, 2]{
+        public static int[,] pixel = new int[4, 2]
+        {
+            {220, 220}, //first int is how far right, second int is how far down
+            {300, 250},
+            {300, 340},
+            {220, 320}
+        };
 
-                                {220, 220}, //first int is how far right, second int is how far down
-                                {300, 250},
-                                {300, 340},
-                                {220, 320}
-
-                            };
         private DateTime _start;
         private DateTime StartTime;
+        private bool speedmode;
 
         public static void WriteResourceToFile(string resourceName, string fileName)
         {
@@ -175,7 +171,7 @@ namespace CubeBotGUI
             process.WaitForExit();
 
             // *** Read the stream ***
-            string output = process.StandardOutput.ReadToEnd();
+            var output = process.StandardOutput.ReadToEnd();
 
             output.Replace("  ", "");
             log(output);
@@ -185,33 +181,28 @@ namespace CubeBotGUI
 
         public void log(string text)
         {
-            log_box.AppendText(Environment.NewLine);
-            log_box.AppendText(text);
+            if (!speedmode)
+            {
+                log_box.AppendText(Environment.NewLine);
+                log_box.AppendText(text);
+            }
         }
 
-        bool InRange(int colorvalue, int max, int min)
+        private bool InRange(int colorvalue, int max, int min)
         {
-            return (colorvalue <= max && colorvalue >= min);
+            return colorvalue <= max && colorvalue >= min;
         }
 
         public string colorname()
         {
             if (InRange(redvalue, 255, 120) && InRange(greenvalue, 80, 0) && InRange(bluevalue, 80, 0))
-            {
                 //red_confidence = Math.Abs(((255 - redvalue + (redvalue - 150)) / 2) - 202) / 202 ;   // fix this to show percent error of red value
 
 
-
                 return "red";
-            }
 
 
-
-            else
-            {
-                //log("error determining color name");
-                return "error";
-            }
+            return "error";
         }
 
         private void read_f1_Click(object sender, EventArgs e)
@@ -231,41 +222,43 @@ namespace CubeBotGUI
             {
                 solvemycubepressed = true;
                 live = false;
-                Thread.Sleep(1000); //give time for LiveCamera() to finish running, or else we will get nullreferenceexception
+                Thread.Sleep(
+                    1000); //give time for LiveCamera() to finish running, or else we will get nullreferenceexception
                 cap.Dispose();
                 liveimage.Dispose();
                 GC.Collect();
                 //log("Capturing webcam");
-                Stopwatch stopwatch = new Stopwatch();
+                var stopwatch = new Stopwatch();
                 stopwatch.Start();
 
                 //VideoCapture capture = new VideoCapture(); //create a camera capture
-                Bitmap image = capture.QueryFrame().Bitmap; //take a picture
+                var image = capture.QueryFrame().Bitmap; //take a picture
                 cubeview.Image = image;
                 cubeview.Refresh();
 
 
-
-                for (int i = 0; i < 4; i++)
+                for (var i = 0; i < 4; i++)
                 {
-                    Bitmap bmp = (Bitmap)cubeview.Image;
-                    Color clr = bmp.GetPixel(pixel[i, 0], pixel[i, 1]);
+                    var bmp = (Bitmap) cubeview.Image;
+                    var clr = bmp.GetPixel(pixel[i, 0], pixel[i, 1]);
                     redvalue = clr.R;
                     greenvalue = clr.G;
                     bluevalue = clr.B;
                     log("Corner " + i + " color is:  RGB(" + redvalue + ", " + greenvalue + ", " + bluevalue + ")");
 
-                    for (int q = 0; q < 50; q++)
+                    for (var q = 0; q < 50; q++)
                     {
                         px++;
                         image.SetPixel(pixel[i, 0] + px, pixel[i, 1] + px, Color.Yellow);
                     }
+
                     px = 0;
 
                     cubeview.Image = bmp;
 
                     log(Environment.NewLine + "Color name is: " + colorname() + Environment.NewLine);
                 }
+
                 stopwatch.Stop();
                 log("Time elapsed for reading face 1: " + stopwatch.Elapsed);
             }
@@ -276,7 +269,7 @@ namespace CubeBotGUI
                 timer1.Enabled = true;
                 timer1.Interval = 100;
                 StartTime = DateTime.Now;
-                Thread thr = new Thread(alg);
+                var thr = new Thread(alg);
                 thr.Start();
             }
         }
@@ -297,20 +290,21 @@ namespace CubeBotGUI
             cubeview.Refresh();
 
 
-
-            for (int i = 0; i < 4; i++)
+            for (var i = 0; i < 4; i++)
             {
-                Bitmap bmp = (Bitmap)cubeview.Image;
+                var bmp = (Bitmap) cubeview.Image;
 
-                for (int q = 0; q < 50; q++)
+                for (var q = 0; q < 50; q++)
                 {
                     px++;
                     image.SetPixel(pixel[i, 0] + px, pixel[i, 1] + px, Color.Yellow);
                 }
+
                 px = 0;
 
                 cubeview.Image = bmp;
             }
+
             log("We will read colors at top-left-most pixel of each line drawn on image");
 
         }
@@ -413,94 +407,96 @@ namespace CubeBotGUI
 
         public int oldcorner(string oldpiece)
         {
-            if (oldpiece == "A" || oldpiece == "E" || oldpiece == "R")
+            switch (oldpiece)
             {
-                return 0;
-            }
-            if (oldpiece == "B" || oldpiece == "N" || oldpiece == "Q")
-            {
-                return 1;
-            }
-            if (oldpiece == "C" || oldpiece == "M" || oldpiece == "J")
-            {
-                return 2;
-            }
-            if (oldpiece == "D" || oldpiece == "F" || oldpiece == "I")
-            {
-                return 3;
-            }
-            if (oldpiece == "U" || oldpiece == "G" || oldpiece == "L")
-            {
-                return 4;
-            }
-            if (oldpiece == "V" || oldpiece == "P" || oldpiece == "K")
-            {
-                return 5;
-            }
-            if (oldpiece == "W" || oldpiece == "O" || oldpiece == "T")
-            {
-                return 6;
-            }
-            if (oldpiece == "X" || oldpiece == "H" || oldpiece == "S")
-            {
-                return 7;
-            }
-            else
-            {
-                log("something isn't right");
-                return 0;
+                case "A":
+                case "E":
+                case "R":
+                    return 0;
+                case "B":
+                case "N":
+                case "Q":
+                    return 1;
+                case "C":
+                case "M":
+                case "J":
+                    return 2;
+                case "D":
+                case "F":
+                case "I":
+                    return 3;
+                case "U":
+                case "G":
+                case "L":
+                    return 4;
+                case "V":
+                case "P":
+                case "K":
+                    return 5;
+                case "W":
+                case "O":
+                case "T":
+                    return 6;
+                case "X":
+                case "H":
+                case "S":
+                    return 7;
+                default:
+                    log("something isn't right");
+                    return 0;
             }
         }
 
         public int newcorner(string newpiece)
         {
-            if (newpiece == "A" || newpiece == "E" || newpiece == "R")
+            switch (newpiece)
             {
-                return 0;
-            }
-            if (newpiece == "B" || newpiece == "N" || newpiece == "Q")
-            {
-                return 1;
-            }
-            if (newpiece == "C" || newpiece == "M" || newpiece == "J")
-            {
-                return 2;
-            }
-            if (newpiece == "D" || newpiece == "F" || newpiece == "I")
-            {
-                return 3;
-            }
-            if (newpiece == "U" || newpiece == "G" || newpiece == "L")
-            {
-                return 4;
-            }
-            if (newpiece == "V" || newpiece == "P" || newpiece == "K")
-            {
-                return 5;
-            }
-            if (newpiece == "W" || newpiece == "O" || newpiece == "T")
-            {
-                return 6;
-            }
-            if (newpiece == "X" || newpiece == "H" || newpiece == "S")
-            {
-                return 7;
-            }
-            else
-            {
-                log("something isn't right");
-                return 0;
+                case "A":
+                case "E":
+                case "R":
+                    return 0;
+                case "B":
+                case "N":
+                case "Q":
+                    return 1;
+                case "C":
+                case "M":
+                case "J":
+                    return 2;
+                case "D":
+                case "F":
+                case "I":
+                    return 3;
+                case "U":
+                case "G":
+                case "L":
+                    return 4;
+                case "V":
+                case "P":
+                case "K":
+                    return 5;
+                case "W":
+                case "O":
+                case "T":
+                    return 6;
+                case "X":
+                case "H":
+                case "S":
+                    return 7;
+                default:
+                    log("something isn't right");
+                    return 0;
             }
         }
 
         public void timer1_Tick(object sender, EventArgs e)
         {
-            TimeSpan elapsed = DateTime.Now - StartTime;
+            var elapsed = DateTime.Now - StartTime;
 
             // Start with the days if greater than 0.
-            string text = "";
+            var text = "";
             if (elapsed.Days > 0)
-                text += elapsed.Days.ToString() + ".";
+                text += elapsed.Days + ".";
 
             // Compose the rest of the elapsed time.
             text +=
@@ -512,8 +508,14 @@ namespace CubeBotGUI
 
         public void alg()
         {
+            if (speedmode_box.Checked)
+            {
+                speedmode = true;
 
-
+                live = false;
+                liveimage.Dispose();
+                GC.Collect();
+            }
 
             log("Input cubestring is " + cubestring);
             CornerColor[0] = cubestring.Substring(0, 3); //split each corner's colors from whole string
@@ -564,7 +566,6 @@ namespace CubeBotGUI
             poss = CornerColor[7].Substring(2, 1);
 
 
-
             //foreach (string str in CornerColor)
             //{
             //  log(str);
@@ -576,12 +577,13 @@ namespace CubeBotGUI
 
 
             allpcs = null;
-            for (int i = 0; i < 8; i++)
+            for (var i = 0; i < 8; i++)
             {
                 //log("Backing up CornerColor[" + i + "] in current[" + i + "]");
                 current[i] = CornerColor[i];
                 allpcs += current[i];
             }
+
             log(Environment.NewLine);
 
             if (allpcs == "WOBWRBWRGWOGYOGYRGYRBYOB")
@@ -591,14 +593,12 @@ namespace CubeBotGUI
             }
 
 
-
-
             oldpiece = "A";
             FindWherePieceBelongs(CornerColor[0]); //find where buffer belongs
             log("Corner " + current[0] + " belongs in [loc = " + loc + "]");
             PossibleNumberOfPiecesToSolve--;
             depth_label.Text = "Depth: " + PossibleNumberOfPiecesToSolve;
-            log(PossibleNumberOfPiecesToSolve.ToString() + " pieces left to solve");
+            log(PossibleNumberOfPiecesToSolve + " pieces left to solve");
             FindSetupMoves(loc); //find which setup moves/inverse we need to use
             newpiece = loc;
 
@@ -616,25 +616,15 @@ namespace CubeBotGUI
             //SolvedPieces.ForEach(i => Console.Write("{0}\t", i));
 
             pcs = null;
-            for (int i = 0; i < 8; i++)
-            {
-                pcs += current[i];
-            }
-            if (pcs == "WOBWRBWRGWOGYOGYRGYRBYOB")
-            {
-                solved();
-            }
+            for (var i = 0; i < 8; i++) pcs += current[i];
+            if (pcs == "WOBWRBWRGWOGYOGYRGYRBYOB") solved();
 
             if (pcs != "WOBWRBWRGWOGYOGYRGYRBYOB")
-            {
                 while (PossibleNumberOfPiecesToSolve > 0)
-                {
                     SolveNextCorner();
-                } //keep solving corners until we have none left to solve :)
-            }
         }
 
-        public  void updatecurrent()
+        public void updatecurrent()
         {
             oldcornercolor = oldcorner(oldpiece);
             newcornercolor = newcorner(newpiece);
@@ -646,119 +636,70 @@ namespace CubeBotGUI
 
 
             //swapchar(true, current[0], current[newcornercolor], 1, , 2, , 3, , 1, , 2, , 3, );
-
-            if (newpiece == "A")
-            {
-                //no change- it's already in "a"
-            }
             if (newpiece == "B")
-            {
                 //this stuff here will swap the buffer and piece we shot to, and put each color in the correct orientation we will see in real life
-                swapchar(true, current[0], current[newcornercolor], /* first we build buffer -> */ 1, 1, 2, 3, 3, 2, /* next we build piece we shot to ->*/ 1, 1, 2, 3, 3, 2);
-            }
+                swapchar(true, current[0], current[newcornercolor], /* first we build buffer -> */ 1, 1, 2, 3, 3,
+                    2, /* next we build piece we shot to ->*/ 1, 1, 2, 3, 3, 2);
             if (newpiece == "C")
-            {
                 swapchar(true, current[0], current[newcornercolor], 1, 1, 2, 2, 3, 3, 1, 1, 2, 2, 3, 3);
-            }
             if (newpiece == "D")
-            {
                 swapchar(true, current[0], current[newcornercolor], 1, 1, 2, 3, 3, 2, 1, 1, 2, 3, 3, 2);
-            }
-            if (newpiece == "E")
-            {
-                //this wouldn't make any sense. Can't swap buffer with buffer ;)
-            }
             if (newpiece == "F")
-            {
                 swapchar(true, current[0], current[newcornercolor], 1, 2, 2, 1, 3, 3, 1, 2, 2, 1, 3, 3);
-            }
-            if (newpiece == "G") //IDK WHY THIS ONE WORKS??? SHOULDN'T ''SHOT TO'' BE DIFFERENT??? SHOULDNT IT MATCH BUFFER?
-            {
+            if (newpiece == "G")
                 swapchar(true, current[0], current[newcornercolor], 1, 2, 2, 3, 3, 1, 1, 2, 2, 3, 3, 1);
-            }
             if (newpiece == "H")
-            {
                 swapchar(true, current[0], current[newcornercolor], 1, 2, 2, 1, 3, 3, 1, 2, 2, 1, 3, 3);
-            }
             if (newpiece == "I")
-            {
                 swapchar(true, current[0], current[newcornercolor], 1, 3, 2, 2, 3, 1, 1, 3, 2, 2, 3, 1);
-            }
             if (newpiece == "J")
-            {
                 swapchar(true, current[0], current[newcornercolor], 1, 3, 2, 1, 3, 2, 1, 3, 2, 1, 3, 2);
-            }
             if (newpiece == "K")
-            {
                 swapchar(true, current[0], current[newcornercolor], 1, 3, 2, 2, 3, 1, 1, 3, 2, 2, 3, 1);
-            }
             if (newpiece == "L")
-            {
                 swapchar(true, current[0], current[newcornercolor], 1, 3, 2, 1, 3, 2, 1, 3, 2, 1, 3, 2);
-            }
             if (newpiece == "M")
-            {
                 swapchar(true, current[0], current[newcornercolor], 1, 2, 2, 3, 3, 1, 1, 2, 2, 3, 3, 1);
-            }
             if (newpiece == "N")
-            {
                 swapchar(true, current[0], current[newcornercolor], 1, 2, 2, 1, 3, 3, 1, 2, 2, 1, 3, 3);
-            }
             if (newpiece == "O")
-            {
                 swapchar(true, current[0], current[newcornercolor], 1, 2, 2, 3, 3, 1, 1, 2, 2, 3, 3, 1);
-            }
             if (newpiece == "P")
-            {
                 swapchar(true, current[0], current[newcornercolor], 1, 2, 2, 1, 3, 3, 1, 2, 2, 1, 3, 3);
-            }
             if (newpiece == "Q")
-            {
                 swapchar(true, current[0], current[newcornercolor], 1, 3, 2, 2, 3, 1, 1, 3, 2, 2, 3, 1);
-            }
-            if (newpiece == "R")
-            {
-                //r is on the buffer so wouldnt make sense
-            }
             if (newpiece == "S")
-            {
                 swapchar(true, current[0], current[newcornercolor], 1, 3, 2, 2, 3, 1, 1, 3, 2, 2, 3, 1);
-            }
             if (newpiece == "T")
-            {
                 swapchar(true, current[0], current[newcornercolor], 1, 3, 2, 1, 3, 2, 1, 3, 2, 1, 3, 2);
-            }
             if (newpiece == "U")
-            {
                 swapchar(true, current[0], current[newcornercolor], 1, 1, 2, 2, 3, 3, 1, 1, 2, 2, 3, 3);
-            }
             if (newpiece == "V")
-            {
                 swapchar(true, current[0], current[newcornercolor], 1, 1, 2, 3, 3, 2, 1, 1, 2, 3, 3, 2);
-            }
             if (newpiece == "W")
-            {
                 swapchar(true, current[0], current[newcornercolor], 1, 1, 2, 2, 3, 3, 1, 1, 2, 2, 3, 3);
-            }
             if (newpiece == "X")
-            {
                 swapchar(true, current[0], current[newcornercolor], 1, 1, 2, 3, 3, 2, 1, 1, 2, 3, 3, 2);
-            }
         }
 
-        public  void swapchar(bool swapbuffer, string buffer, string shotto, int buff_swap1_buffchar, int buff_swap1_shotchar, int buff_swap2_buffchar, int buff_swap2_shotchar, int buff_swap3_buffchar, int buff_swap3_shotchar, int shot_swap1_buffchar, int shot_swap1_shotchar, int shot_swap2_buffchar, int shot_swap2_shotchar, int shot_swap3_buffchar, int shot_swap3_shotchar)
-        {
 
+
+        public void swapchar(bool swapbuffer, string buffer, string shotto, int buff_swap1_buffchar,
+            int buff_swap1_shotchar, int buff_swap2_buffchar, int buff_swap2_shotchar, int buff_swap3_buffchar,
+            int buff_swap3_shotchar, int shot_swap1_buffchar, int shot_swap1_shotchar, int shot_swap2_buffchar,
+            int shot_swap2_shotchar, int shot_swap3_buffchar, int shot_swap3_shotchar)
+        {
             //this is a pretty odd algorithm which swaps the buffer and shot piece, and vice versa, according to how we specify, in order to achieve the correct representation of the pieces' orientations and permutations in the program. Cornercolor[] array does not care about orientation, so current[] array is more accurate in reagrd to piece attributes (permutation and orientation).
-            StringBuilder buff_builder = new StringBuilder(buffer);
-            StringBuilder shot_builder = new StringBuilder(shotto);
-            StringBuilder temp_for_buff = new StringBuilder(buffer);
+            var buff_builder = new StringBuilder(buffer);
+            var shot_builder = new StringBuilder(shotto);
+            var temp_for_buff = new StringBuilder(buffer);
 
             //log("buff builder is " + buff_builder.ToString() + " and shot is " + shot_builder.ToString() + " and temp is " + temp_for_buff.ToString());
 
 
             //first we build buffer
-            temp_for_buff[buff_swap1_buffchar - 1] = shot_builder[buff_swap1_shotchar - 1]; //minus one because arrays start at zero, not 1
+            temp_for_buff[buff_swap1_buffchar - 1] =
+                shot_builder[buff_swap1_shotchar - 1]; //minus one because arrays start at zero, not 1
             temp_for_buff[buff_swap2_buffchar - 1] = shot_builder[buff_swap2_shotchar - 1];
             temp_for_buff[buff_swap3_buffchar - 1] = shot_builder[buff_swap3_shotchar - 1];
 
@@ -772,73 +713,64 @@ namespace CubeBotGUI
         }
 
 
-        public  void FindIfAnySolvedPieces()
+        public void FindIfAnySolvedPieces()
         {
             if (CornerColor[0].Contains("W") && CornerColor[0].Contains("O") && CornerColor[0].Contains("B"))
-            {
                 if (CornerColor[0].Substring(0, 1) == "W")
                 {
                     PossibleNumberOfPiecesToSolve--;
                     SolvedPieces.Add("TBL");
                 }
-            }
+
             if (CornerColor[1].Contains("W") && CornerColor[1].Contains("R") && CornerColor[1].Contains("B"))
-            {
                 if (CornerColor[1].Substring(0, 1) == "W")
                 {
                     PossibleNumberOfPiecesToSolve--;
                     SolvedPieces.Add("TBR");
                 }
-            }
+
             if (CornerColor[2].Contains("W") && CornerColor[2].Contains("R") && CornerColor[2].Contains("G"))
-            {
                 if (CornerColor[2].Substring(0, 1) == "W")
                 {
                     PossibleNumberOfPiecesToSolve--;
                     SolvedPieces.Add("TFR");
                 }
-            }
+
             if (CornerColor[3].Contains("W") && CornerColor[3].Contains("O") && CornerColor[3].Contains("G"))
-            {
                 if (CornerColor[3].Substring(0, 1) == "W")
                 {
                     PossibleNumberOfPiecesToSolve--;
                     SolvedPieces.Add("TFL");
                 }
-            }
+
             if (CornerColor[4].Contains("Y") && CornerColor[4].Contains("O") && CornerColor[4].Contains("G"))
-            {
                 //do the same for Y
                 if (CornerColor[4].Substring(0, 1) == "Y")
                 {
                     PossibleNumberOfPiecesToSolve--;
                     SolvedPieces.Add("BFL");
                 }
-            }
+
             if (CornerColor[5].Contains("Y") && CornerColor[5].Contains("R") && CornerColor[5].Contains("G"))
-            {
                 if (CornerColor[5].Substring(0, 1) == "Y")
                 {
                     PossibleNumberOfPiecesToSolve--;
                     SolvedPieces.Add("BFR");
                 }
-            }
+
             if (CornerColor[6].Contains("Y") && CornerColor[6].Contains("R") && CornerColor[6].Contains("B"))
-            {
                 if (CornerColor[6].Substring(0, 1) == "Y")
                 {
                     PossibleNumberOfPiecesToSolve--;
                     SolvedPieces.Add("BBR");
                 }
-            }
+
             if (CornerColor[7].Contains("Y") && CornerColor[7].Contains("O") && CornerColor[7].Contains("B"))
-            {
                 if (CornerColor[7].Substring(0, 1) == "Y")
                 {
                     PossibleNumberOfPiecesToSolve--;
                     SolvedPieces.Add("BBL");
                 }
-            }
 
             log("Number of pieces we need to solve: " + PossibleNumberOfPiecesToSolve);
             depth_label.Text = "Depth: " + PossibleNumberOfPiecesToSolve;
@@ -849,156 +781,80 @@ namespace CubeBotGUI
             log("Pieces that are permuted correctly but not oriented correctly (aka twisted): ");
             twisted.ToList().ForEach(i => log_box.AppendText("  " + i));
         }
-        public  void FindIfAnyTwistedPieces()
+
+        public void FindIfAnyTwistedPieces()
         {
             if (CornerColor[0].Contains("W") && CornerColor[0].Contains("O") && CornerColor[0].Contains("B"))
-            {
                 if (CornerColor[0].Substring(0, 1) != "W")
-                {
                     twisted.Add("TBL");
-                }
-            }
             if (CornerColor[1].Contains("W") && CornerColor[1].Contains("R") && CornerColor[1].Contains("B"))
-            {
                 if (CornerColor[1].Substring(0, 1) != "W")
-                {
                     twisted.Add("TBR");
-                }
-            }
             if (CornerColor[2].Contains("W") && CornerColor[2].Contains("R") && CornerColor[2].Contains("G"))
-            {
                 if (CornerColor[2].Substring(0, 1) != "W")
-                {
                     twisted.Add("TFR");
-                }
-            }
             if (CornerColor[3].Contains("W") && CornerColor[3].Contains("O") && CornerColor[3].Contains("G"))
-            {
                 if (CornerColor[3].Substring(0, 1) != "W")
-                {
                     twisted.Add("TFL");
-                }
-            }
             if (CornerColor[4].Contains("Y") && CornerColor[4].Contains("O") && CornerColor[4].Contains("G"))
-            {
                 if (CornerColor[4].Substring(0, 1) != "Y")
-                {
                     twisted.Add("BFL");
-                }
-            }
             if (CornerColor[5].Contains("Y") && CornerColor[5].Contains("R") && CornerColor[5].Contains("G"))
-            {
                 if (CornerColor[5].Substring(0, 1) != "Y")
-                {
                     twisted.Add("BFR");
-                }
-            }
             if (CornerColor[6].Contains("Y") && CornerColor[6].Contains("R") && CornerColor[6].Contains("B"))
-            {
                 if (CornerColor[6].Substring(0, 1) != "Y")
-                {
                     twisted.Add("BBR");
-                }
-            }
             if (CornerColor[7].Contains("Y") && CornerColor[7].Contains("O") && CornerColor[7].Contains("B"))
-            {
                 if (CornerColor[7].Substring(0, 1) != "Y")
-                {
                     twisted.Add("BBL");
-                }
-            }
         }
-        public  void FindWherePieceBelongs(string CornerColor)
+
+        public void FindWherePieceBelongs(string CornerColor)
         {
             if (CornerColor.Contains("R") && CornerColor.Contains("B") && CornerColor.Contains("Y"))
             {
                 CornerBelongsInPosition = "Back_Bottom_Right";
-
-                if (CornerColor.Substring(0, 1) == "R")
-                {
-                    loc = "O";
-                }
-                if (CornerColor.Substring(0, 1) == "B")
-                {
-                    loc = "T";
-                }
-                if (CornerColor.Substring(0, 1) == "Y")
-                {
-                    loc = "W";
-                }
+                if (CornerColor.Substring(0, 1) == "R") loc = "O";
+                if (CornerColor.Substring(0, 1) == "B") loc = "T";
+                if (CornerColor.Substring(0, 1) == "Y") loc = "W";
             }
+
             if (CornerColor.Contains("G") && CornerColor.Contains("Y") && CornerColor.Contains("R"))
             {
                 CornerBelongsInPosition = "Front_Bottom_Right";
-
-                if (CornerColor.Substring(0, 1) == "G")
-                {
-                    loc = "K";
-                }
-                if (CornerColor.Substring(0, 1) == "Y")
-                {
-                    loc = "V";
-                }
-                if (CornerColor.Substring(0, 1) == "R")
-                {
-                    loc = "P";
-                }
+                if (CornerColor.Substring(0, 1) == "G") loc = "K";
+                if (CornerColor.Substring(0, 1) == "Y") loc = "V";
+                if (CornerColor.Substring(0, 1) == "R") loc = "P";
             }
+
             if (CornerColor.Contains("Y") && CornerColor.Contains("B") && CornerColor.Contains("O"))
             {
                 CornerBelongsInPosition = "Back_Bottom_Left";
-
-                if (CornerColor.Substring(0, 1) == "Y")
-                {
-                    loc = "X";
-                }
-                if (CornerColor.Substring(0, 1) == "B")
-                {
-                    loc = "S";
-                }
-                if (CornerColor.Substring(0, 1) == "O")
-                {
-                    loc = "H";
-                }
+                if (CornerColor.Substring(0, 1) == "Y") loc = "X";
+                if (CornerColor.Substring(0, 1) == "B") loc = "S";
+                if (CornerColor.Substring(0, 1) == "O") loc = "H";
             }
+
             if (CornerColor.Contains("O") && CornerColor.Contains("G") && CornerColor.Contains("W"))
             {
                 CornerBelongsInPosition = "Front_Top_Left";
-
-                if (CornerColor.Substring(0, 1) == "O")
-                {
-                    loc = "F";
-                }
-                if (CornerColor.Substring(0, 1) == "G")
-                {
-                    loc = "I";
-                }
-                if (CornerColor.Substring(0, 1) == "W")
-                {
-                    loc = "D";
-                }
+                if (CornerColor.Substring(0, 1) == "O") loc = "F";
+                if (CornerColor.Substring(0, 1) == "G") loc = "I";
+                if (CornerColor.Substring(0, 1) == "W") loc = "D";
             }
+
             if (CornerColor.Contains("G") && CornerColor.Contains("Y") && CornerColor.Contains("O"))
             {
                 CornerBelongsInPosition = "Front_Bottom_Left";
-
-                if (CornerColor.Substring(0, 1) == "G")
-                {
-                    loc = "L";
-                }
-                if (CornerColor.Substring(0, 1) == "Y")
-                {
-                    loc = "U";
-                }
-                if (CornerColor.Substring(0, 1) == "O")
-                {
-                    loc = "G";
-                }
+                if (CornerColor.Substring(0, 1) == "G") loc = "L";
+                if (CornerColor.Substring(0, 1) == "Y") loc = "U";
+                if (CornerColor.Substring(0, 1) == "O") loc = "G";
             }
+
             if (CornerColor.Contains("W") && CornerColor.Contains("B") && CornerColor.Contains("O"))
             {
                 CornerBelongsInPosition = "Back_Top_Left";
-
                 if (CornerColor.Substring(0, 1) == "W")
                 {
                     loc = "A";
@@ -1007,6 +863,7 @@ namespace CubeBotGUI
                     colors_on_twist = "WBO";
                     HandleTwist();
                 }
+
                 if (CornerColor.Substring(0, 1) == "B")
                 {
                     loc = "R";
@@ -1015,6 +872,7 @@ namespace CubeBotGUI
                     colors_on_twist = "BWO";
                     HandleTwist();
                 }
+
                 if (CornerColor.Substring(0, 1) == "O")
                 {
                     loc = "E";
@@ -1024,43 +882,25 @@ namespace CubeBotGUI
                     HandleTwist();
                 }
             }
+
             if (CornerColor.Contains("W") && CornerColor.Contains("R") && CornerColor.Contains("G"))
             {
                 CornerBelongsInPosition = "Front_Top_Right";
-
-                if (CornerColor.Substring(0, 1) == "W")
-                {
-                    loc = "C";
-                }
-                if (CornerColor.Substring(0, 1) == "R")
-                {
-                    loc = "M";
-                }
-                if (CornerColor.Substring(0, 1) == "G")
-                {
-                    loc = "J";
-                }
+                if (CornerColor.Substring(0, 1) == "W") loc = "C";
+                if (CornerColor.Substring(0, 1) == "R") loc = "M";
+                if (CornerColor.Substring(0, 1) == "G") loc = "J";
             }
+
             if (CornerColor.Contains("W") && CornerColor.Contains("R") && CornerColor.Contains("B"))
             {
                 CornerBelongsInPosition = "Back_Top_Right";
-
-                if (CornerColor.Substring(0, 1) == "W")
-                {
-                    loc = "B";
-                }
-                if (CornerColor.Substring(0, 1) == "R")
-                {
-                    loc = "N";
-                }
-                if (CornerColor.Substring(0, 1) == "B")
-                {
-                    loc = "Q";
-                }
+                if (CornerColor.Substring(0, 1) == "W") loc = "B";
+                if (CornerColor.Substring(0, 1) == "R") loc = "N";
+                if (CornerColor.Substring(0, 1) == "B") loc = "Q";
             }
         }
 
-        public  void HandleTwist()
+        public void HandleTwist()
         {
             handlingtwist = true;
             //PossibleNumberOfPiecesToSolve++;
@@ -1071,7 +911,6 @@ namespace CubeBotGUI
                     log("The A position is solved, yet there are other pieces which aren't solved yet.");
                     PossibleNumberOfPiecesToSolve++;
                     depth_label.Text = "Depth: " + PossibleNumberOfPiecesToSolve;
-
                 }
             }
             else
@@ -1088,7 +927,8 @@ namespace CubeBotGUI
             FindNextPiece(loc); //find the colors on that piece
             CornerColor[8] = targetcolor; //store the colors of the piece in the array
             FindSetupMoves(loc); //find setup moves to shoot to new buffer
-            twist_buff = loc; //make sure we store what our new buffer position is so we can check if we're shooting to it later
+            twist_buff =
+                loc; //make sure we store what our new buffer position is so we can check if we're shooting to it later
             log("twist_buff = " + twist_buff);
             PossibleNumberOfPiecesToSolve--;
             depth_label.Text = "Depth: " + PossibleNumberOfPiecesToSolve;
@@ -1102,13 +942,10 @@ namespace CubeBotGUI
             log("We have solved: ");
             SolvedPieces.ToList().ForEach(i => log_box.AppendText("   " + i));
 
-            while (PossibleNumberOfPiecesToSolve != 0)
-            {
-                SolveNextCorner();
-            }
+            while (PossibleNumberOfPiecesToSolve != 0) SolveNextCorner();
         }
 
-        public  void FindPieceToSolve()
+        public void FindPieceToSolve()
         {
             CornerColor[9] = colors_on_twist;
             log("current orientation of piece in A position is " + colors_on_twist);
@@ -1116,7 +953,8 @@ namespace CubeBotGUI
             if (!SolvedPieces.Contains("TBR"))
             {
                 loc = "B";
-                twist_buff = "B"; //we use "loc" here because we need to know if we're shooting to ANY sticker on buffer piece
+                twist_buff =
+                    "B"; //we use "loc" here because we need to know if we're shooting to ANY sticker on buffer piece
                 log(loc + " is not solved. Shooting to " + loc);
                 CheckIfLocIsTwisted(loc);
                 if (locistwisted)
@@ -1126,8 +964,10 @@ namespace CubeBotGUI
                     Console.ResetColor();
                     specialtwistedloccase = true;
                 }
+
                 return;
             }
+
             if (!SolvedPieces.Contains("TFR"))
             {
                 loc = "C";
@@ -1139,8 +979,10 @@ namespace CubeBotGUI
                     log("We are trying to shoot to a piece that is twisted in place....");
                     specialtwistedloccase = true;
                 }
+
                 return;
             }
+
             if (!SolvedPieces.Contains("TFL"))
             {
                 loc = "D";
@@ -1152,8 +994,10 @@ namespace CubeBotGUI
                     log("We are trying to shoot to a piece that is twisted in place....");
                     specialtwistedloccase = true;
                 }
+
                 return;
             }
+
             if (!SolvedPieces.Contains("BFL"))
             {
                 loc = "L";
@@ -1165,8 +1009,10 @@ namespace CubeBotGUI
                     log("We are trying to shoot to a piece that is twisted in place....");
                     specialtwistedloccase = true;
                 }
+
                 return;
             }
+
             if (!SolvedPieces.Contains("BFR"))
             {
                 loc = "K";
@@ -1178,8 +1024,10 @@ namespace CubeBotGUI
                     log("We are trying to shoot to a piece that is twisted in place....");
                     specialtwistedloccase = true;
                 }
+
                 return;
             }
+
             if (!SolvedPieces.Contains("BBR"))
             {
                 loc = "W";
@@ -1191,8 +1039,10 @@ namespace CubeBotGUI
                     log("We are trying to shoot to a piece that is twisted in place....");
                     specialtwistedloccase = true;
                 }
+
                 return;
             }
+
             if (!SolvedPieces.Contains("BBL"))
             {
                 loc = "X";
@@ -1204,7 +1054,6 @@ namespace CubeBotGUI
                     log("We are trying to shoot to a piece that is twisted in place....");
                     specialtwistedloccase = true;
                 }
-                return;
             }
         }
 
@@ -1215,181 +1064,132 @@ namespace CubeBotGUI
             log("checking if loc is twisted... loc is now " + loc);
             log(Environment.NewLine);
             if (loc == "B")
-            {
                 if (twisted.Contains("TBR"))
-                {
                     locistwisted = true;
-                }
-            }
             if (loc == "C")
-            {
                 if (twisted.Contains("TFR"))
-                {
                     locistwisted = true;
-                }
-            }
             if (loc == "D")
-            {
                 if (twisted.Contains("TFL"))
-                {
                     locistwisted = true;
-                }
-            }
             if (loc == "L")
-            {
                 if (twisted.Contains("BFL"))
-                {
                     locistwisted = true;
-                }
-            }
             if (loc == "K")
-            {
                 if (twisted.Contains("BFR"))
-                {
                     locistwisted = true;
-                }
-            }
             if (loc == "W")
-            {
                 if (twisted.Contains("BBR"))
-                {
                     locistwisted = true;
-                }
-            }
             if (loc == "X")
-            {
                 if (twisted.Contains("BBL"))
-                {
                     locistwisted = true;
-                }
-            }
         }
 
         public  string FindSetupMoves(string loc)
         {
-            if (loc == "A")
+            switch (loc)
             {
-                setup = "";
-                und = "";
-            }
-            if (loc == "B")
-            {
-                setup = "R D'";
-                und = "D R'";
-            }
-            if (loc == "C")
-            {
-                setup = "F";
-                und = "F'";
-            }
-            if (loc == "D")
-            {
-                setup = "L D L'";
-                und = "L D' L'";
-            }
-            if (loc == "E")
-            {
-                setup = "";
-                und = "";
-                log("ERR: Buffer belongs in a buffer position (twisted buffer or need new cycle)");
-                Environment.Exit(1);
-            }
-            if (loc == "F")
-            {
-                setup = "F2";
-                und = "F2";
-            }
-            if (loc == "G")
-            {
-                setup = "D2 R";
-                und = "R' D2";
-            }
-            if (loc == "H")
-            {
-                setup = "D2";
-                und = "D2";
-            }
-            if (loc == "I")
-            {
-                setup = "F' D";
-                und = "D' F";
-            }
-            if (loc == "J")
-            {
-                setup = "F2 D";
-                und = "D' F2";
-            }
-            if (loc == "K")
-            {
-                setup = "F D";
-                und = "D' F'";
-            }
-            if (loc == "L")
-            {
-                setup = "D";
-                und = "D'";
-            }
-            if (loc == "M")
-            {
-                setup = "R'";
-                und = "R";
-            }
-            if (loc == "N")
-            {
-                setup = "R2";
-                und = "R2";
-            }
-            if (loc == "O")
-            {
-                setup = "R";
-                und = "R'";
-            }
-            if (loc == "P")
-            {
-                setup = "";
-                und = "";
-            }
-            if (loc == "Q")
-            {
-                setup = "R' F";
-                und = "F' R";
-            }
-            if (loc == "R")
-            {
-                setup = "";
-                und = "";
-                log("ERR: Buffer belongs in a buffer position (twisted buffer or need new cycle)");
-                Environment.Exit(1);
-            }
-            if (loc == "S")
-            {
-                setup = "D' R";
-                und = "R' D";
-            }
-            if (loc == "T")
-            {
-                setup = "D'";
-                und = "D";
-            }
-            if (loc == "U")
-            {
-                setup = "F'";
-                und = "F";
-            }
-            if (loc == "V")
-            {
-                setup = "D' F'";
-                und = "F D";
-            }
-            if (loc == "W")
-            {
-                setup = "D2 F'";
-                und = "F D2";
-            }
-            if (loc == "X")
-            {
-                setup = "D F'";
-                und = "F D'";
+                case "A":
+                    setup = "";
+                    und = "";
+                    break;
+                case "B":
+                    setup = "R D'";
+                    und = "D R'";
+                    break;
+                case "C":
+                    setup = "F";
+                    und = "F'";
+                    break;
+                case "D":
+                    setup = "L D L'";
+                    und = "L D' L'";
+                    break;
+                case "E":
+                    setup = "";
+                    und = "";
+                    log("ERR: Buffer belongs in a buffer position (twisted buffer or need new cycle)");
+                    Environment.Exit(1);
+                    break;
+                case "F":
+                    setup = "F2";
+                    und = "F2";
+                    break;
+                case "G":
+                    setup = "D2 R";
+                    und = "R' D2";
+                    break;
+                case "H":
+                    setup = "D2";
+                    und = "D2";
+                    break;
+                case "I":
+                    setup = "F' D";
+                    und = "D' F";
+                    break;
+                case "J":
+                    setup = "F2 D";
+                    und = "D' F2";
+                    break;
+                case "K":
+                    setup = "F D";
+                    und = "D' F'";
+                    break;
+                case "L":
+                    setup = "D";
+                    und = "D'";
+                    break;
+                case "M":
+                    setup = "R'";
+                    und = "R";
+                    break;
+                case "N":
+                    setup = "R2";
+                    und = "R2";
+                    break;
+                case "O":
+                    setup = "R";
+                    und = "R'";
+                    break;
+                case "P":
+                    setup = "";
+                    und = "";
+                    break;
+                case "Q":
+                    setup = "R' F";
+                    und = "F' R";
+                    break;
+                case "R":
+                    setup = "";
+                    und = "";
+                    log("ERR: Buffer belongs in a buffer position (twisted buffer or need new cycle)");
+                    Environment.Exit(1);
+                    break;
+                case "S":
+                    setup = "D' R";
+                    und = "R' D";
+                    break;
+                case "T":
+                    setup = "D'";
+                    und = "D";
+                    break;
+                case "U":
+                    setup = "F'";
+                    und = "F";
+                    break;
+                case "V":
+                    setup = "D' F'";
+                    und = "F D";
+                    break;
+                case "W":
+                    setup = "D2 F'";
+                    und = "F D2";
+                    break;
+                case "X":
+                    setup = "D F'";
+                    und = "F D'";
+                    break;
             }
 
             return setup;
@@ -1397,65 +1197,85 @@ namespace CubeBotGUI
 
         public  void AddToSolvedPieces(string loc)
         {
-            if (loc == "B" || loc == "N" || loc == "Q")
+            switch (loc)
             {
-                SolvedPieces.Add("TBR");
-            }
-            if (loc == "C" || loc == "M" || loc == "J")
-            {
-                SolvedPieces.Add("TFR");
-            }
-            if (loc == "D" || loc == "F" || loc == "I")
-            {
-                SolvedPieces.Add("TFL");
-            }
-            if (loc == "U" || loc == "G" || loc == "L")
-            {
-                SolvedPieces.Add("BFL");
-            }
-            if (loc == "V" || loc == "P" || loc == "K")
-            {
-                SolvedPieces.Add("BFR");
-            }
-            if (loc == "W" || loc == "O" || loc == "T")
-            {
-                SolvedPieces.Add("BBR");
-            }
-            if (loc == "X" || loc == "H" || loc == "S")
-            {
-                SolvedPieces.Add("BBL");
+                case "B":
+                case "N":
+                case "Q":
+                    SolvedPieces.Add("TBR");
+                    break;
+                case "C":
+                case "M":
+                case "J":
+                    SolvedPieces.Add("TFR");
+                    break;
+                case "D":
+                case "F":
+                case "I":
+                    SolvedPieces.Add("TFL");
+                    break;
+                case "U":
+                case "G":
+                case "L":
+                    SolvedPieces.Add("BFL");
+                    break;
+                case "V":
+                case "P":
+                case "K":
+                    SolvedPieces.Add("BFR");
+                    break;
+                case "W":
+                case "O":
+                case "T":
+                    SolvedPieces.Add("BBR");
+                    break;
+                case "X":
+                case "H":
+                case "S":
+                    SolvedPieces.Add("BBL");
+                    break;
             }
         }
 
         public  void RemoveFromSolvedPieces(string oldloc)
         {
-            if (loc == "B" || loc == "N" || loc == "Q")
+            switch (loc)
             {
-                SolvedPieces.Remove("TBR");
-            }
-            if (loc == "C" || loc == "M" || loc == "J")
-            {
-                SolvedPieces.Remove("TFR");
-            }
-            if (loc == "D" || loc == "F" || loc == "I")
-            {
-                SolvedPieces.Remove("TFL");
-            }
-            if (loc == "U" || loc == "G" || loc == "L")
-            {
-                SolvedPieces.Remove("BFL");
-            }
-            if (loc == "V" || loc == "P" || loc == "K")
-            {
-                SolvedPieces.Remove("BFR");
-            }
-            if (loc == "W" || loc == "O" || loc == "T")
-            {
-                SolvedPieces.Remove("BBR");
-            }
-            if (loc == "X" || loc == "H" || loc == "S")
-            {
-                SolvedPieces.Remove("BBL");
+                case "B":
+                case "N":
+                case "Q":
+                    SolvedPieces.Remove("TBR");
+                    break;
+                case "C":
+                case "M":
+                case "J":
+                    SolvedPieces.Remove("TFR");
+                    break;
+                case "D":
+                case "F":
+                case "I":
+                    SolvedPieces.Remove("TFL");
+                    break;
+                case "U":
+                case "G":
+                case "L":
+                    SolvedPieces.Remove("BFL");
+                    break;
+                case "V":
+                case "P":
+                case "K":
+                    SolvedPieces.Remove("BFR");
+                    break;
+                case "W":
+                case "O":
+                case "T":
+                    SolvedPieces.Remove("BBR");
+                    break;
+                case "X":
+                case "H":
+                case "S":
+                    SolvedPieces.Remove("BBL");
+                    break;
             }
         }
 
@@ -1564,92 +1384,31 @@ namespace CubeBotGUI
             //}
             //}
 
-
-            if (loc == "B")
+            targetcolor = loc switch
             {
-                targetcolor = posb + posn + posq;
-            }
-            if (loc == "C")
-            {
-                targetcolor = posc + posm + posj;
-            }
-            if (loc == "D")
-            {
-                targetcolor = posd + posf + posi;
-            }
-            if (loc == "F")
-            {
-                targetcolor = posf + posd + posi;
-                //log(f + d + i);
-            }
-            if (loc == "G")
-            {
-                targetcolor = posg + posu + posl;
-            }
-            if (loc == "H")
-            {
-                targetcolor = posh + posx + poss;
-            }
-            if (loc == "I")
-            {
-                targetcolor = posi + posd + posf;
-            }
-            if (loc == "J")
-            {
-                targetcolor = posj + posc + posm;
-            }
-            if (loc == "K")
-            {
-                targetcolor = posk + posp + posv;
-            }
-            if (loc == "L")
-            {
-                targetcolor = posl + posg + posu;
-            }
-            if (loc == "M")
-            {
-                targetcolor = posm + posc + posj;
-            }
-            if (loc == "N")
-            {
-                targetcolor = posn + posb + posq;
-            }
-            if (loc == "O")
-            {
-                targetcolor = poso + post + posw;
-            }
-            if (loc == "P")
-            {
-                targetcolor = posp + posk + posv;
-            }
-            if (loc == "Q")
-            {
-                targetcolor = posq + posb + posn;
-            }
-            if (loc == "S")
-            {
-                targetcolor = poss + posh + posx;
-            }
-            if (loc == "T")
-            {
-                targetcolor = post + poso + posw;
-            }
-            if (loc == "U")
-            {
-                targetcolor = posu + posl + posg;
-            }
-            if (loc == "V")
-            {
-                targetcolor = posv + posk + posp;
-            }
-            if (loc == "W")
-            {
-                targetcolor = posw + poso + post;
-            }
-            if (loc == "X")
-            {
-                targetcolor = posx + posh + poss;
-            }
+                "B" => (posb + posn + posq),
+                "C" => (posc + posm + posj),
+                "D" => (posd + posf + posi),
+                "F" => (posf + posd + posi),
+                "G" => (posg + posu + posl),
+                "H" => (posh + posx + poss),
+                "I" => (posi + posd + posf),
+                "J" => (posj + posc + posm),
+                "K" => (posk + posp + posv),
+                "L" => (posl + posg + posu),
+                "M" => (posm + posc + posj),
+                "N" => (posn + posb + posq),
+                "O" => (poso + post + posw),
+                "P" => (posp + posk + posv),
+                "Q" => (posq + posb + posn),
+                "S" => (poss + posh + posx),
+                "T" => (post + poso + posw),
+                "U" => (posu + posl + posg),
+                "V" => (posv + posk + posp),
+                "W" => (posw + poso + post),
+                "X" => (posx + posh + poss),
+                _ => targetcolor
+            };
 
             log("next piece to solve is " + targetcolor);
             oldloc = loc;
@@ -1658,88 +1417,32 @@ namespace CubeBotGUI
 
         public  bool ShootingToBuffer(string loc)
         {
-            if (twist_buff == "B") //if our new buffer that we shot to is on the piece where sticker B resides
+            switch (twist_buff)
             {
-                if (loc == "B" || loc == "N" || loc == "Q") //and if we are shooting to any piece on that buffer
-                {
+                //if our new buffer that we shot to is on the piece where sticker B resides
+                //and if we are shooting to any piece on that buffer
+                case "B" when loc == "B" || loc == "N" || loc == "Q":
+                case "C" when loc == "C" || loc == "M" || loc == "J":
+                case "D" when loc == "D" || loc == "F" || loc == "I":
+                case "L" when loc == "L" || loc == "G" || loc == "U":
+                case "K" when loc == "K" || loc == "P" || loc == "V":
+                case "W" when loc == "W" || loc == "O" || loc == "T":
+                case "X" when loc == "X" || loc == "H" || loc == "S":
                     return true; //then yes, we are shooting to the buffer and the buffer is now solved (meaning either the cube is solved or we have a solved buffer but pieceslefttosolve > 0 so we still have some pieces left to solve (nned new cycle)
-                }
+                default:
+                    return false; //if none of the above, return false
             }
-            if (twist_buff == "C")
-            {
-                if (loc == "C" || loc == "M" || loc == "J")
-                {
-                    return true;
-                }
-            }
-            if (twist_buff == "D")
-            {
-                if (loc == "D" || loc == "F" || loc == "I")
-                {
-                    return true;
-                }
-            }
-            if (twist_buff == "L")
-            {
-                if (loc == "L" || loc == "G" || loc == "U")
-                {
-                    return true;
-                }
-            }
-            if (twist_buff == "K")
-            {
-                if (loc == "K" || loc == "P" || loc == "V")
-                {
-                    return true;
-                }
-            }
-            if (twist_buff == "W")
-            {
-                if (loc == "W" || loc == "O" || loc == "T")
-                {
-                    return true;
-                }
-            }
-            if (twist_buff == "X")
-            {
-                if (loc == "X" || loc == "H" || loc == "S")
-                {
-                    return true;
-                }
-            }
-            return false; //if none of the above, return false
         }
 
-        public  void FindUnsolvedPieces()
+        public void FindUnsolvedPieces()
         {
-            if (!SolvedPieces.Contains("TBL"))
-            {
-                UnsolvedPieces.Add("TBL");
-            }
-            if (!SolvedPieces.Contains("TBR"))
-            {
-                UnsolvedPieces.Add("TBR");
-            }
-            if (!SolvedPieces.Contains("TFR"))
-            {
-                UnsolvedPieces.Add("TFR");
-            }
-            if (!SolvedPieces.Contains("TFL"))
-            {
-                UnsolvedPieces.Add("TFL");
-            }
-            if (!SolvedPieces.Contains("BFL"))
-            {
-                UnsolvedPieces.Add("BFR");
-            }
-            if (!SolvedPieces.ToString().Contains("BBR"))
-            {
-                UnsolvedPieces.Add("BBR");
-            }
-            if (!SolvedPieces.ToString().Contains("BBL"))
-            {
-                UnsolvedPieces.Add("BBL");
-            }
+            if (!SolvedPieces.Contains("TBL")) UnsolvedPieces.Add("TBL");
+            if (!SolvedPieces.Contains("TBR")) UnsolvedPieces.Add("TBR");
+            if (!SolvedPieces.Contains("TFR")) UnsolvedPieces.Add("TFR");
+            if (!SolvedPieces.Contains("TFL")) UnsolvedPieces.Add("TFL");
+            if (!SolvedPieces.Contains("BFL")) UnsolvedPieces.Add("BFR");
+            if (!SolvedPieces.ToString().Contains("BBR")) UnsolvedPieces.Add("BBR");
+            if (!SolvedPieces.ToString().Contains("BBL")) UnsolvedPieces.Add("BBL");
         }
 
         private void solved()
@@ -1777,6 +1480,11 @@ namespace CubeBotGUI
             Console.BackgroundColor = ConsoleColor.Red;
             log(text);
             Console.ResetColor();
+        }
+
+        private void Log_box_TextChanged(object sender, EventArgs e)
+        {
+
         }
     }
 }

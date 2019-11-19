@@ -52,6 +52,7 @@
             this.lac_label = new System.Windows.Forms.Label();
             this.depth_label = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
+            this.speedmode_box = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.cubeview)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.liveimage)).BeginInit();
             this.panel3.SuspendLayout();
@@ -99,6 +100,7 @@
             this.log_box.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             this.log_box.Size = new System.Drawing.Size(428, 705);
             this.log_box.TabIndex = 3;
+            this.log_box.TextChanged += new System.EventHandler(this.Log_box_TextChanged);
             // 
             // viewwhereweread
             // 
@@ -302,11 +304,22 @@
             this.label1.TabIndex = 31;
             this.label1.Text = "Statistics:";
             // 
+            // speedmode_box
+            // 
+            this.speedmode_box.AutoSize = true;
+            this.speedmode_box.Location = new System.Drawing.Point(16, 844);
+            this.speedmode_box.Name = "speedmode_box";
+            this.speedmode_box.Size = new System.Drawing.Size(167, 21);
+            this.speedmode_box.TabIndex = 32;
+            this.speedmode_box.Text = "Enable Speed-Mode?";
+            this.speedmode_box.UseVisualStyleBackColor = true;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1310, 942);
+            this.Controls.Add(this.speedmode_box);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.panel1);
             this.Controls.Add(this.label7);
@@ -365,6 +378,7 @@
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.CheckBox speedmode_box;
     }
 }
 
